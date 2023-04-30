@@ -49,11 +49,14 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
             lith_sign_update(&sign_state, newData, newSize);
             break;
         case 2:
-            if (newSize > X25519_LEN * 2)
+            while (newSize > X25519_LEN * 2)
             {
                 memcpy(scalar, newData, X25519_LEN);
                 memcpy(point, newData + X25519_LEN, X25519_LEN);
                 x25519(x25519Out, scalar, point);
+
+                newSize -= X25519_LEN * 2;
+                newData += X25519_LEN * 2;
             }
             break;
         case 3:
@@ -79,7 +82,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
             }
             break;
         case 5:
-            if (newSize > X25519_LEN * 4)
+            while (newSize > X25519_LEN * 4)
             {
                 memcpy(scalar, newData, X25519_LEN);
                 memcpy(point, newData + X25519_LEN, X25519_LEN);
@@ -87,6 +90,9 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
                 memcpy(response, newData + X25519_LEN * 3, X25519_LEN);
 
                 x25519_verify(response, challenge, scalar, point);
+
+                newSize -= X25519_LEN * 4;
+                newData += X25519_LEN * 4;
             }
             break;
         case 6:
@@ -100,17 +106,20 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
             }
             break;
         case 7:
-            if (newSize > LITH_SIGN_PREHASH_LEN + LITH_SIGN_SECRET_KEY_LEN)
+            while (newSize > LITH_SIGN_PREHASH_LEN + LITH_SIGN_SECRET_KEY_LEN)
             {
                 memcpy(prehash, newData, LITH_SIGN_PREHASH_LEN);
                 memcpy(secret_key, newData + LITH_SIGN_PREHASH_LEN,
                        LITH_SIGN_SECRET_KEY_LEN);
                 lith_sign_create_from_prehash(sig, prehash, secret_key);
+
+                newSize -= LITH_SIGN_PREHASH_LEN + LITH_SIGN_SECRET_KEY_LEN;
+                newData += LITH_SIGN_PREHASH_LEN + LITH_SIGN_SECRET_KEY_LEN;
             }
             break;
         case 8:
-            if (newSize > LITH_SIGN_PREHASH_LEN + LITH_SIGN_PUBLIC_KEY_LEN +
-                              LITH_SIGN_LEN)
+            while (newSize > LITH_SIGN_PREHASH_LEN + LITH_SIGN_PUBLIC_KEY_LEN +
+                                 LITH_SIGN_LEN)
             {
                 memcpy(prehash, newData, LITH_SIGN_PREHASH_LEN);
                 memcpy(public_key, newData + LITH_SIGN_PREHASH_LEN,
@@ -120,6 +129,11 @@ int LLVMFuzzerTestOneInput(const uint8_t *Data, size_t Size)
                            LITH_SIGN_PUBLIC_KEY_LEN,
                        LITH_SIGN_LEN);
                 lith_sign_verify_prehash(sig, prehash, public_key);
+
+                newSize -= LITH_SIGN_PREHASH_LEN + LITH_SIGN_PUBLIC_KEY_LEN +
+                           LITH_SIGN_LEN;
+                newData += LITH_SIGN_PREHASH_LEN + LITH_SIGN_PUBLIC_KEY_LEN +
+                           LITH_SIGN_LEN;
             }
             break;
         case 9:
