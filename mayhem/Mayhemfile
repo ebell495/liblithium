@@ -1,0 +1,6 @@
+project: liblithium
+target: liblithium-fuzz
+
+cmds:
+    - cmd: ./liblithium-fuzz
+      libfuzzer: true

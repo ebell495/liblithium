@@ -1,0 +1,63 @@
+# SConstruct
+
+import os
+import platform
+import subprocess
+
+import SCons.Errors
+
+env = Environment()
+
+liblithium_env = env.Clone(CC="clang")
+llvm_flags = [
+    "-Weverything",
+    "-Wno-unknown-warning-option",
+    "-Wno-poison-system-directories",
+    "-Wno-c99-extensions",
+    "-Wno-long-long",
+    "-Wno-variadic-macros",
+    "-Wno-format-non-iso",
+    "-Werror",
+    "-O3",
+    "-g",
+    "-flto",
+    "-ffunction-sections",
+    "-fdata-sections",
+    "-fsanitize=fuzzer-no-link,address",
+]
+
+liblithium_env.Append(CCFLAGS=llvm_flags, LINKFLAGS=llvm_flags)
+liblithium_env.Append(CPPPATH=[Dir("../include")])
+
+liblithium = SConscript(
+    dirs="../src",
+    variant_dir=os.path.join('build', "lib"),
+    exports={"env": liblithium_env},
+    duplicate=False,
+)
+
+liblith_random = SConscript(
+        "../src/SConscript-random",
+        variant_dir=os.path.join('build', "lib", "random"),
+        exports={"env": liblithium_env},
+        duplicate=False,
+    )
+
+
+fuzzer_env = env.Clone(CC="clang")
+fuzzer_flags = [
+    "-flto",
+    "-fsanitize=fuzzer,address",
+    "-I../include",
+    "-Werror"
+]
+
+fuzzer_env.Prepend(LIBS=[liblithium, liblith_random])
+fuzzer_env.Append(CCFLAGS=fuzzer_flags, LINKFLAGS=fuzzer_flags)
+
+lithium_fuzzer = fuzzer_env.Program(
+    target="liblithium-fuzz",
+    source=[
+        "liblithium-fuzz.c",
+    ]
+)
